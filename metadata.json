@@ -1,0 +1,5 @@
+{
+  "name": "Three-Body Star System",
+  "description": "An interactive, real-time 3D simulation of a chaotic three-body star system using Runge-Kutta 4 integration.",
+  "requestFramePermissions": []
+}
