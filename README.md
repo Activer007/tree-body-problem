@@ -2,20 +2,17 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Three-Body Star System – Build & Deploy Guide
+# Three-Body Star System – 本地运行与部署指南
 
-This project is a Vite + React app that renders an interactive three-body simulation. Follow the steps below to run it locally, create production builds, and deploy to your preferred static host.
+这是一个使用 Vite + React 构建的三体问题交互式模拟器。按照以下步骤在本地运行、创建生产构建并部署到您选择的静态托管服务。
 
-## Prerequisites
+## 系统要求
 
-- Node.js 18+ (LTS recommended) with npm
-- A Gemini API key
+- Node.js 18+ (推荐 LTS 版本) 和 npm
 
-## Run and deploy your AI Studio app
+## 本地运行应用程序
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1CGbFwc8eaX53iO2g57Kn77M1kCc4SnaL
+本项目已完全配置为独立运行，无需任何外部 API 密钥或云服务依赖。
 
 
 ## 1. Install Dependencies
