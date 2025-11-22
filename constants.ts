@@ -133,6 +133,11 @@ export const generateRandomScenario = (): BodyState[] => {
   return bodies;
 };
 
+const LAGRANGE_SIDE = 12;
+const LAGRANGE_RADIUS = LAGRANGE_SIDE / Math.sqrt(3);
+const LAGRANGE_MASS = 10;
+const LAGRANGE_SPEED = Math.sqrt((G_CONST * LAGRANGE_MASS) / LAGRANGE_SIDE);
+
 export const PRESETS: Preset[] = [
   {
     name: 'Figure8',
@@ -173,6 +178,28 @@ export const PRESETS: Preset[] = [
       createBody('Beta', 15, [-4, -4, -4], [0.1, 0.05, 0], '#00aaff'),
       createBody('Gamma', 8, [4, -4, 0], [0, 0.15, -0.05], '#ff4444'),
       createBody('Planet', 0.01, [0, 10, 0], [0.2, 0, 0], '#ffffff', false)
+    ]
+  },
+  {
+    name: 'LagrangeStable',
+    label: 'Lagrange Triangle',
+    bodies: [
+      createBody('Star A', LAGRANGE_MASS, [LAGRANGE_RADIUS, 0, 0], [0, LAGRANGE_SPEED, 0], '#ffaa00'),
+      createBody(
+        'Star B',
+        LAGRANGE_MASS,
+        [-LAGRANGE_RADIUS / 2, (Math.sqrt(3) / 2) * LAGRANGE_RADIUS, 0],
+        [(-Math.sqrt(3) / 2) * LAGRANGE_SPEED, -0.5 * LAGRANGE_SPEED, 0],
+        '#00aaff'
+      ),
+      createBody(
+        'Star C',
+        LAGRANGE_MASS,
+        [-LAGRANGE_RADIUS / 2, (-Math.sqrt(3) / 2) * LAGRANGE_RADIUS, 0],
+        [(Math.sqrt(3) / 2) * LAGRANGE_SPEED, -0.5 * LAGRANGE_SPEED, 0],
+        '#ff4444'
+      ),
+      createBody('Probe', 0.001, [LAGRANGE_RADIUS * 0.95, 0.3, 0], [0, LAGRANGE_SPEED, 0], '#ffffff', false)
     ]
   }
 ];
