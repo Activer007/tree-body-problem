@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Play, Pause, RotateCcw, Activity, AlertTriangle, CheckCircle, Sun, Moon } from 'lucide-react';
 import { PRESETS } from '../constants';
 import { SimulationStats, PresetName, BodyState } from '../types';
@@ -24,11 +24,28 @@ export const Controls: React.FC<ControlsProps> = ({
   resetSimulation,
   currentPreset,
   stats,
+  bodies,
   theme,
   setTheme
 }) => {
   // Dynamic Styles
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    console.info('[UI] Controls mounted', {
+      presetCount: PRESETS.length,
+      hasBodies: Array.isArray(bodies) && bodies.length > 0,
+    });
+  }, [bodies]);
+
+  useEffect(() => {
+    console.debug('[UI] Controls state updated', {
+      isRunning,
+      simulationSpeed,
+      currentPreset,
+      theme,
+    });
+  }, [isRunning, simulationSpeed, currentPreset, theme]);
   
   const containerClass = isDark 
     ? "bg-black/60 backdrop-blur-md border border-white/10 text-gray-200 shadow-2xl shadow-black/50" 
@@ -47,7 +64,10 @@ export const Controls: React.FC<ControlsProps> = ({
     : "bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50";
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
+    <div
+      id="controls-overlay"
+      className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 z-10"
+    >
       {/* Top Header */}
       <div className="flex justify-between items-start pointer-events-auto gap-4">
         <div className={`${containerClass} p-4 rounded-lg max-w-md transition-colors duration-300`}>

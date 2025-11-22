@@ -106,6 +106,22 @@ export default function App() {
     initSimulation('Figure8');
   }, [initSimulation]);
 
+  useEffect(() => {
+    const overlay = document.getElementById('controls-overlay');
+    if (!overlay) {
+      console.warn('[UI] Controls overlay element not found in DOM');
+      return;
+    }
+
+    const styles = window.getComputedStyle(overlay);
+    console.info('[UI] Controls overlay detected', {
+      display: styles.display,
+      visibility: styles.visibility,
+      pointerEvents: styles.pointerEvents,
+      zIndex: styles.zIndex,
+    });
+  }, [theme]);
+
   // Calculate trail length based on speed to avoid clutter
   // High speed = shorter trail history
   const getTrailLength = (speed: number) => {
