@@ -31,8 +31,12 @@ export const Controls: React.FC<ControlsProps> = ({
   const isDark = theme === 'dark';
 
   const containerClass = isDark
-    ? "bg-black/60 backdrop-blur-md border border-white/10 text-gray-200 shadow-2xl shadow-black/50"
-    : "bg-white/90 backdrop-blur-md border border-gray-200 text-gray-900 shadow-xl shadow-gray-500/15";
+    ? "backdrop-blur-md border border-white/10 text-gray-200 shadow-2xl shadow-black/50"
+    : "backdrop-blur-md border border-gray-200 text-gray-900 shadow-xl shadow-gray-500/15";
+
+  const containerBgStyle = isDark
+    ? { backgroundColor: '#333333' }
+    : { backgroundColor: '#F9F9F9' };
 
   const labelClass = isDark ? "text-gray-500" : "text-gray-800";
   const headerTextClass = isDark ? "text-cyan-400" : "text-cyan-700";
@@ -50,7 +54,7 @@ export const Controls: React.FC<ControlsProps> = ({
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
       {/* Top Header */}
       <div className="flex justify-between items-start pointer-events-auto gap-4">
-        <div className={`${containerClass} p-4 rounded-lg max-w-md transition-colors duration-300`}>
+        <div className={`${containerClass} p-4 rounded-lg max-w-md transition-colors duration-300`} style={containerBgStyle}>
           <div className="flex items-center justify-between mb-1">
             <h1 className={`text-2xl font-bold ${headerTextClass} tracking-wider uppercase flex items-center gap-2`}>
               <Activity className="w-5 h-5" /> Trisolaris
@@ -84,7 +88,7 @@ export const Controls: React.FC<ControlsProps> = ({
         </div>
 
         {/* Stats Panel */}
-        <div className={`${containerClass} p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`}>
+        <div className={`${containerClass} p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`} style={containerBgStyle}>
             <h3 className={`font-bold mb-2 border-b pb-1 ${isDark ? 'text-gray-400 border-gray-700' : 'text-gray-700 border-gray-300'}`}>Telemetry</h3>
             <div className="space-y-2">
                 <div className="flex justify-between">
@@ -119,7 +123,7 @@ export const Controls: React.FC<ControlsProps> = ({
 
       {/* Bottom Controls */}
       <div className="flex justify-center pointer-events-auto">
-        <div className={`${containerClass} p-4 rounded-xl flex items-center gap-6 transition-colors duration-300`}>
+        <div className={`${containerClass} p-4 rounded-xl flex items-center gap-6 transition-colors duration-300`} style={containerBgStyle}>
             <button 
                 onClick={() => setIsRunning(!isRunning)}
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
@@ -153,7 +157,7 @@ export const Controls: React.FC<ControlsProps> = ({
                     step="0.1"
                     value={simulationSpeed}
                     onChange={(e) => setSimulationSpeed(parseFloat(e.target.value))}
-                    className={`accent-cyan-500 h-1 ${isDark ? 'bg-gray-500/30' : 'bg-slate-200'} rounded-lg appearance-none cursor-pointer`}
+                    className={`accent-cyan-500 h-1 ${isDark ? 'bg-gray-500/30' : 'bg-slate-200'} rounded-lg cursor-pointer`}
                 />
             </div>
         </div>
