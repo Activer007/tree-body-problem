@@ -12,7 +12,7 @@ interface BodyVisualProps {
   theme: 'dark' | 'light';
 }
 
-const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light' }> = ({ radius, color, theme }) => {
+const StarMesh: React.FC<{ radius: number; color: string; name: string; theme: 'dark' | 'light' }> = ({ radius, color, name, theme }) => {
   // 创建径向渐变纹理以增强3D效果
   const createRadialGradientTexture = () => {
     const canvas = document.createElement('canvas');
@@ -35,6 +35,11 @@ const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light
 
   const gradientTexture = createRadialGradientTexture();
 
+  // 判断是否为黄色恒星（用于light主题下添加轮廓）
+  // 黄色恒星包括：Sun A, Alpha, Star A，颜色通常为 #ffaa00, #ffcc00 , #ff6c00
+  const isYellowStar = color.toLowerCase() === '#ffaa00' || color.toLowerCase() === '#ffcc00';
+  const outlineColor = isYellowStar && theme === 'light' ? '#ff6c00' : null; // 深橙色轮廓
+
   return (
     <group>
         {/* Main Star Body - Using Standard Material with Emissive for safe, realistic glow */}
@@ -49,6 +54,21 @@ const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light
                 metalness={0.05}
             />
         </mesh>
+
+        {/* 黄色恒星在light主题下的深橙色轮廓 */}
+        {outlineColor && (
+          <mesh scale={[1.08, 1.08, 1.08]}>
+            <sphereGeometry args={[radius, 64, 64]} />
+            <meshBasicMaterial 
+              color={outlineColor}
+              transparent 
+              opacity={0.6}
+              side={THREE.BackSide}
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+            />
+          </mesh>
+        )}
 
         {/* 中心高亮层 - 体现球心亮度 */}
         <mesh scale={[1.05, 1.05, 1.05]}>
