@@ -46,3 +46,45 @@ export interface Preset {
   label: string;
   bodies: BodyState[];
 }
+
+// --- Minimal architecture extensions for Mode/Schema-driven params ---
+export type ModeId = PresetName; // keep backward compatibility with existing code for now
+
+export type ParameterType = 'number' | 'boolean' | 'select' | 'vec3' | 'color';
+
+export interface ParameterMeta {
+  key: string;
+  label: string;
+  type: ParameterType;
+  default: any;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  options?: Array<{ label: string; value: string | number }>;
+  group?: string;
+  validate?: (v: any) => string | void;
+}
+
+export interface TrajectoryController {
+  onBeforeStep?: (
+    state: BodyState[],
+    t: number,
+    dt: number
+  ) => {
+    paramOverrides?: Record<string, any>;
+    impulses?: Array<{ bodyId: number; dv: [number, number, number] }>; // optional future use
+  } | void;
+}
+
+export interface Mode {
+  id: ModeId;
+  label: string;
+  description?: string;
+  // Parameters driving UI; optional for existing presets
+  parameters?: ParameterMeta[];
+  // Create initial bodies; seed optional
+  createInitialBodies: (seed?: number) => BodyState[];
+  // Optional controller factory to inject control accelerations
+  createController?: (initialBodies: BodyState[]) => SimulationConfig['controller'];
+}

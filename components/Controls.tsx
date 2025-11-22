@@ -1,15 +1,15 @@
 import React from 'react';
 import { Play, Pause, RotateCcw, Activity, AlertTriangle, CheckCircle, Sun, Moon, Focus } from 'lucide-react';
-import { PRESETS } from '../constants';
-import { SimulationStats, PresetName, BodyState } from '../types';
+import { SimulationStats, BodyState, ModeId } from '../types';
+import { getModeOptions } from '../modes/registry';
 
 interface ControlsProps {
   isRunning: boolean;
   setIsRunning: (v: boolean) => void;
   simulationSpeed: number;
   setSimulationSpeed: (v: number) => void;
-  resetSimulation: (preset: PresetName) => void;
-  currentPreset: PresetName;
+  resetSimulation: (modeId: ModeId) => void;
+  currentPreset: ModeId;
   stats: SimulationStats;
   bodies: BodyState[];
   theme: 'dark' | 'light';
@@ -74,15 +74,15 @@ export const Controls: React.FC<ControlsProps> = ({
           <div className="mt-4 space-y-2">
             <label className={`text-xs font-bold ${labelClass} uppercase`}>Scenario Preset</label>
             <div className="flex flex-wrap gap-2">
-              {PRESETS.map(preset => (
+              {getModeOptions().map(m => (
                 <button
-                  key={preset.name}
-                  onClick={() => resetSimulation(preset.name)}
+                  key={m.id}
+                  onClick={() => resetSimulation(m.id)}
                   className={`px-3 py-1 text-xs rounded border transition-all ${
-                    currentPreset === preset.name ? buttonActive : buttonInactive
+                    currentPreset === m.id ? buttonActive : buttonInactive
                   }`}
                 >
-                  {preset.label}
+                  {m.label}
                 </button>
               ))}
             </div>
