@@ -29,22 +29,22 @@ export const Controls: React.FC<ControlsProps> = ({
 }) => {
   // Dynamic Styles
   const isDark = theme === 'dark';
-  
-  const containerClass = isDark 
-    ? "bg-black/60 backdrop-blur-md border border-white/10 text-gray-200 shadow-2xl shadow-black/50" 
-    : "bg-gray-50/80 backdrop-blur-md border border-gray-200 text-gray-800 shadow-xl shadow-gray-400/20";
-  
-  const labelClass = isDark ? "text-gray-500" : "text-gray-700";
-  const headerTextClass = isDark ? "text-cyan-400" : "text-cyan-600";
-  const subTextClass = isDark ? "text-gray-400" : "text-gray-600";
-  
-  const buttonActive = isDark 
+
+  const containerClass = isDark
+    ? "bg-black/60 backdrop-blur-md border border-white/10 text-gray-200 shadow-2xl shadow-black/50"
+    : "bg-white/90 backdrop-blur-md border border-gray-200 text-gray-900 shadow-xl shadow-gray-500/15";
+
+  const labelClass = isDark ? "text-gray-500" : "text-gray-800";
+  const headerTextClass = isDark ? "text-cyan-400" : "text-cyan-700";
+  const subTextClass = isDark ? "text-gray-400" : "text-gray-700";
+
+  const buttonActive = isDark
     ? "bg-cyan-900/50 border-cyan-500 text-cyan-100 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-    : "bg-cyan-100 border-cyan-400 text-cyan-800 shadow-[0_0_5px_rgba(6,182,212,0.2)]";
-    
+    : "bg-cyan-100 border-cyan-500 text-cyan-900 shadow-[0_0_6px_rgba(6,182,212,0.25)]";
+
   const buttonInactive = isDark
     ? "bg-gray-900/50 border-gray-700 text-gray-400 hover:border-gray-500"
-    : "bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50";
+    : "bg-white border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm";
 
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
@@ -85,25 +85,25 @@ export const Controls: React.FC<ControlsProps> = ({
 
         {/* Stats Panel */}
         <div className={`${containerClass} p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`}>
-            <h3 className={`font-bold mb-2 border-b pb-1 ${isDark ? 'text-gray-400 border-gray-700' : 'text-gray-600 border-gray-300'}`}>Telemetry</h3>
+            <h3 className={`font-bold mb-2 border-b pb-1 ${isDark ? 'text-gray-400 border-gray-700' : 'text-gray-700 border-gray-300'}`}>Telemetry</h3>
             <div className="space-y-2">
                 <div className="flex justify-between">
                     <span className={labelClass}>Sys Energy:</span>
-                    <span className={Math.abs(stats.totalEnergy) > 1000 ? 'text-red-500 font-bold' : (isDark ? 'text-cyan-300' : 'text-cyan-700 font-semibold')}>
+                    <span className={Math.abs(stats.totalEnergy) > 1000 ? 'text-red-500 font-bold' : (isDark ? 'text-cyan-300' : 'text-cyan-800 font-semibold')}>
                         {stats.totalEnergy.toFixed(2)} J
                     </span>
                 </div>
                 <div className="flex justify-between">
                     <span className={labelClass}>Kinetic:</span>
-                    <span className={isDark ? "text-orange-300" : "text-orange-600"}>{stats.kineticEnergy.toFixed(2)}</span>
+                    <span className={isDark ? "text-orange-300" : "text-orange-700"}>{stats.kineticEnergy.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className={labelClass}>Potential:</span>
-                    <span className={isDark ? "text-blue-300" : "text-blue-600"}>{stats.potentialEnergy.toFixed(2)}</span>
+                    <span className={isDark ? "text-blue-300" : "text-blue-700"}>{stats.potentialEnergy.toFixed(2)}</span>
                 </div>
                  <div className="flex justify-between">
                     <span className={labelClass}>FPS:</span>
-                    <span className={isDark ? "text-green-300" : "text-green-600"}>{Math.round(stats.fps)}</span>
+                    <span className={isDark ? "text-green-300" : "text-green-700"}>{Math.round(stats.fps)}</span>
                 </div>
                  <div className={`flex justify-between items-center mt-2 pt-2 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
                     <span className={labelClass}>Planet Status:</span>
@@ -133,7 +133,7 @@ export const Controls: React.FC<ControlsProps> = ({
 
             <button 
                 onClick={() => resetSimulation(currentPreset)}
-                className={`p-3 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-gray-500 hover:text-black hover:bg-black/5'}`}
+                className={`p-3 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-gray-600 hover:text-black hover:bg-black/5'}`}
                 title="Restart Scenario"
             >
                 <RotateCcw size={20} />
@@ -149,11 +149,11 @@ export const Controls: React.FC<ControlsProps> = ({
                 <input 
                     type="range" 
                     min="0.1" 
-                    max="10.0" 
+                    max="10.0"
                     step="0.1"
                     value={simulationSpeed}
                     onChange={(e) => setSimulationSpeed(parseFloat(e.target.value))}
-                    className={`accent-cyan-500 h-1 ${isDark ? 'bg-gray-500/30' : 'bg-gray-300'} rounded-lg appearance-none cursor-pointer`}
+                    className={`accent-cyan-500 h-1 ${isDark ? 'bg-gray-500/30' : 'bg-slate-200'} rounded-lg appearance-none cursor-pointer`}
                 />
             </div>
         </div>

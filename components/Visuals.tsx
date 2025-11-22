@@ -67,6 +67,11 @@ const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light
 export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, index, traceLength, theme }) => {
   const groupRef = useRef<THREE.Group>(null);
 
+  const baseColor = new THREE.Color(body.color);
+  const lightPlanetColor = baseColor.clone().lerp(new THREE.Color('#0ea5e9'), 0.35);
+  lightPlanetColor.offsetHSL(0, -0.05, 0.08);
+  const planetColor = theme === 'dark' ? body.color : lightPlanetColor.getStyle();
+
   useFrame(() => {
     if (groupRef.current && simulationRef.current[index]) {
       const currentBody = simulationRef.current[index];
@@ -78,7 +83,7 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
     }
   });
 
-  const trailColor = body.isStar ? body.color : (theme === 'dark' ? '#ffffff' : '#000000');
+  const trailColor = body.isStar ? body.color : (theme === 'dark' ? '#e0f2fe' : '#0ea5e9');
 
   return (
     <>
@@ -89,10 +94,10 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
            /* PLANET VISUALS */
            <mesh castShadow receiveShadow>
               <sphereGeometry args={[body.radius, 32, 32]} />
-              <meshStandardMaterial 
-                color={theme === 'dark' ? body.color : '#333333'} 
-                roughness={0.7}
-                metalness={0.2}
+              <meshStandardMaterial
+                color={planetColor}
+                roughness={0.65}
+                metalness={0.25}
               />
            </mesh>
         )}
@@ -106,9 +111,9 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
             style={{ pointerEvents: 'none' }}
         >
             <div className={`select-none text-xs font-mono px-2 rounded backdrop-blur-sm border whitespace-nowrap transition-colors duration-300
-                ${theme === 'dark' 
-                  ? 'text-white/90 bg-black/50 border-white/10 shadow-sm' 
-                  : 'text-gray-800 bg-white/80 border-gray-300 shadow-md'
+                ${theme === 'dark'
+                  ? 'text-white/90 bg-black/50 border-white/10 shadow-sm'
+                  : 'text-gray-900 bg-white/85 border-gray-200 shadow-md'
                 }`}>
                 {body.name}
             </div>
@@ -130,14 +135,14 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
 
 export const StarField = ({ theme }: { theme: 'dark' | 'light' }) => {
   return (
-    <Sparkles 
-      count={3000} 
-      scale={120} 
-      size={theme === 'dark' ? 1.5 : 1.2} 
-      speed={0} 
-      opacity={theme === 'dark' ? 0.4 : 0.2} 
+    <Sparkles
+      count={3000}
+      scale={120}
+      size={theme === 'dark' ? 1.5 : 1.3}
+      speed={0}
+      opacity={theme === 'dark' ? 0.4 : 0.28}
       noise={10}
-      color={theme === 'dark' ? '#ffffff' : '#1f2937'}
+      color={theme === 'dark' ? '#ffffff' : '#94a3b8'}
     />
   );
 }
