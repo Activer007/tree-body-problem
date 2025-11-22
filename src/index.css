@@ -41,30 +41,3 @@
     border-radius: 3px;
   }
 }
-
-/*
- * Fallback layout helpers for the UI overlay. Tailwind spacing utilities were
- * being treeshaken in the hosted environment, which caused the controls to
- * render off-screen during Playwright captures. These classes guarantee the
- * overlay remains pinned and padded even if utility classes are missing.
- */
-.controls-overlay {
-  position: absolute;
-  inset: 0;
-  padding: 1.5rem; /* 24px, matches p-6 */
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.controls-card {
-  padding: 1rem; /* 16px, matches p-4 */
-  border-radius: 0.75rem; /* 12px, matches rounded-lg */
-}
-
-.controls-bottom {
-  padding: 1rem; /* matches p-4 */
-  border-radius: 1rem; /* 16px, matches rounded-xl */
-  gap: 1.5rem; /* 24px, matches gap-6 */
-}

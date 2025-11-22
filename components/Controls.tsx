@@ -47,10 +47,10 @@ export const Controls: React.FC<ControlsProps> = ({
     : "bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50";
 
   return (
-    <div className="controls-overlay absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
       {/* Top Header */}
       <div className="flex justify-between items-start pointer-events-auto gap-4">
-        <div className={`${containerClass} controls-card p-4 rounded-lg max-w-md transition-colors duration-300`}>
+        <div className={`${containerClass} p-4 rounded-lg max-w-md transition-colors duration-300`}>
           <div className="flex items-center justify-between mb-1">
             <h1 className={`text-2xl font-bold ${headerTextClass} tracking-wider uppercase flex items-center gap-2`}>
               <Activity className="w-5 h-5" /> Trisolaris
@@ -84,7 +84,7 @@ export const Controls: React.FC<ControlsProps> = ({
         </div>
 
         {/* Stats Panel */}
-        <div className={`${containerClass} controls-card p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`}>
+        <div className={`${containerClass} p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`}>
             <h3 className={`font-bold mb-2 border-b pb-1 ${isDark ? 'text-gray-400 border-gray-700' : 'text-gray-600 border-gray-300'}`}>Telemetry</h3>
             <div className="space-y-2">
                 <div className="flex justify-between">
@@ -119,7 +119,7 @@ export const Controls: React.FC<ControlsProps> = ({
 
       {/* Bottom Controls */}
       <div className="flex justify-center pointer-events-auto">
-        <div className={`${containerClass} controls-bottom p-4 rounded-xl flex items-center gap-6 transition-colors duration-300`}>
+        <div className={`${containerClass} p-4 rounded-xl flex items-center gap-6 transition-colors duration-300`}>
             <button 
                 onClick={() => setIsRunning(!isRunning)}
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
