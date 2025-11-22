@@ -121,7 +121,7 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
       </group>
       
       <Trail
-        width={body.isStar ? 0.8 : 0.2}
+        width={body.isStar ? 1.6 : 0.5}
         length={traceLength}
         color={new THREE.Color(trailColor)}
         attenuation={(t) => t * t}
