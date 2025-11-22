@@ -138,6 +138,38 @@ const LAGRANGE_RADIUS = LAGRANGE_SIDE / Math.sqrt(3);
 const LAGRANGE_MASS = 10;
 const LAGRANGE_SPEED = Math.sqrt((G_CONST * LAGRANGE_MASS) / LAGRANGE_SIDE);
 
+const createRosetteBodies = (): BodyState[] => {
+  const rosetteBodies: BodyState[] = [];
+  const radius = 12;
+  const masses = [10, 8, 10, 8, 10, 8];
+  const totalMass = masses.reduce((sum, m) => sum + m, 0);
+  const orbitalSpeed = Math.sqrt((G_CONST * totalMass) / radius) * 0.55;
+  const colors = ['#ffaa00', '#00aaff', '#ff4444', '#aaff00', '#ff66cc', '#66ccff'];
+
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const x = radius * Math.cos(angle);
+    const y = radius * Math.sin(angle);
+    const vx = -orbitalSpeed * Math.sin(angle);
+    const vy = orbitalSpeed * Math.cos(angle);
+
+    rosetteBodies.push(
+      createBody(
+        `Petal ${String.fromCharCode(65 + i)}`,
+        masses[i],
+        [x, y, 0],
+        [vx, vy, 0],
+        colors[i % colors.length],
+        true
+      )
+    );
+  }
+
+  rosetteBodies.push(createBody('Core', 0.5, [0, 0, 0], [0, 0, 0], '#ffffff', false));
+
+  return rosetteBodies;
+};
+
 export const PRESETS: Preset[] = [
   {
     name: 'Figure8',
@@ -201,5 +233,10 @@ export const PRESETS: Preset[] = [
       ),
       createBody('Probe', 0.001, [LAGRANGE_RADIUS * 0.95, 0.3, 0], [0, LAGRANGE_SPEED, 0], '#ffffff', false)
     ]
+  },
+  {
+    name: 'Rosette',
+    label: 'Rosette Hexa-Ring',
+    bodies: createRosetteBodies()
   }
 ];

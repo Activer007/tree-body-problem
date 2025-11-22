@@ -196,7 +196,7 @@ export default function App() {
     physicsRef.current = new PhysicsEngine(initialBodies, {
       G: G_CONST,
       timeStep: DEFAULT_TIME_STEP,
-      softening: 0.15,
+      softening: 0.08,
       energySampleInterval: 1
     });
     setCurrentPreset(presetName);

@@ -37,6 +37,7 @@ export type PresetName =
   | 'Hierarchical'
   | 'Lagrange'
   | 'ChaoticEjection'
+  | 'Rosette'
   | 'LagrangeStable';
 
 export interface Preset {
