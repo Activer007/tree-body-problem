@@ -13,6 +13,28 @@ interface BodyVisualProps {
 }
 
 const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light' }> = ({ radius, color, theme }) => {
+  // 创建径向渐变纹理以增强3D效果
+  const createRadialGradientTexture = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+    
+    // 创建径向渐变：中心亮，边缘暗
+    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 180);
+    gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.5)');
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
+    gradient.addColorStop(0.9, 'rgba(255, 255, 255, 0.9)');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 256, 256);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+  };
+
+  const gradientTexture = createRadialGradientTexture();
+
   return (
     <group>
         {/* Main Star Body - Using Standard Material with Emissive for safe, realistic glow */}
@@ -21,43 +43,96 @@ const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light
             <meshStandardMaterial 
                 color={new THREE.Color(color).multiplyScalar(0.8)} 
                 emissive={color}
-                emissiveIntensity={2.0} 
+                emissiveIntensity={2.5} 
                 toneMapped={false} 
-                roughness={0.4}
-                metalness={0.1}
+                roughness={0.3}
+                metalness={0.05}
             />
         </mesh>
 
-        {/* Inner Glow - subtle gradient */}
-        <mesh scale={[1.2, 1.2, 1.2]}>
+        {/* 中心高亮层 - 体现球心亮度 */}
+        <mesh scale={[1.05, 1.05, 1.05]}>
             <sphereGeometry args={[radius, 32, 32]} />
             <meshBasicMaterial 
                 color={color} 
                 transparent 
-                opacity={0.25} 
+                opacity={0.95} 
                 side={THREE.BackSide} 
                 depthWrite={false}
-                blending={theme === 'dark' ? THREE.AdditiveBlending : THREE.NormalBlending}
+                blending={THREE.AdditiveBlending}
             />
         </mesh>
 
-         {/* Outer Corona - larger and fainter */}
-        <mesh scale={[2.2, 2.2, 2.2]}>
+        {/* 径向渐变层 - 增强3D效果 */}
+        <mesh scale={[1.15, 1.15, 1.15]}>
+            <sphereGeometry args={[radius, 32, 32]} />
+            <meshBasicMaterial 
+                map={gradientTexture}
+                transparent 
+                opacity={0.4} 
+                side={THREE.BackSide} 
+                depthWrite={false}
+                blending={THREE.AdditiveBlending}
+            />
+        </mesh>
+
+        {/* 内层光晕 - 柔和过渡 */}
+        <mesh scale={[1.4, 1.4, 1.4]}>
             <sphereGeometry args={[radius, 32, 32]} />
             <meshBasicMaterial 
                 color={color} 
                 transparent 
-                opacity={theme === 'dark' ? 0.1 : 0.05} 
+                opacity={theme === 'dark' ? 0.15 : 0.08} 
                 depthWrite={false}
-                side={THREE.FrontSide}
-                blending={theme === 'dark' ? THREE.AdditiveBlending : THREE.NormalBlending}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
             />
         </mesh>
 
+        {/* 中层光晕 - 扩展光线 */}
+        <mesh scale={[1.8, 1.8, 1.8]}>
+            <sphereGeometry args={[radius, 32, 32]} />
+            <meshBasicMaterial 
+                color={color} 
+                transparent 
+                opacity={theme === 'dark' ? 0.08 : 0.04} 
+                depthWrite={false}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
+            />
+        </mesh>
+
+        {/* 外层光晕 - 大范围柔光 */}
+        <mesh scale={[2.5, 2.5, 2.5]}>
+            <sphereGeometry args={[radius, 32, 32]} />
+            <meshBasicMaterial 
+                color={color} 
+                transparent 
+                opacity={theme === 'dark' ? 0.1 : 0.1} 
+                depthWrite={false}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
+            />
+        </mesh>
+
+        {/* 极外层光晕 - 非常柔和的外光 */}
+        <mesh scale={[3.5, 3.5, 3.5]}>
+            <sphereGeometry args={[radius, 16, 16]} />
+            <meshBasicMaterial 
+                color={color} 
+                transparent 
+                opacity={theme === 'dark' ? 0.06 : 0.03} 
+                depthWrite={false}
+                side={THREE.BackSide}
+                blending={THREE.AdditiveBlending}
+            />
+        </mesh>
+
+        {/* 强化点光源 - 增加照亮周围的效果 */}
         <pointLight
-            distance={100}
+            distance={150}
             decay={2}
-            intensity={5} 
+            intensity={8} 
             color={color}
         />
     </group>
