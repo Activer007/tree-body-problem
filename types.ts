@@ -18,6 +18,7 @@ export interface SimulationConfig {
   G: number;
   timeStep: number;
   softening: number; // To prevent infinite forces at collision
+  energySampleInterval?: number; // Simulation seconds between energy recomputations
 }
 
 export interface SimulationStats {

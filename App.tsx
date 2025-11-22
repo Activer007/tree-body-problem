@@ -8,15 +8,17 @@ import { PRESETS, DEFAULT_TIME_STEP, G_CONST, generateRandomScenario } from './c
 import { BodyState, SimulationStats, PresetName } from './types';
 
 // Inner component to handle the animation loop within Canvas context
-const SimulationLoop = ({ 
-  physicsRef, 
-  bodiesRef, 
-  setStats, 
-  isRunning, 
-  speed 
-}: { 
-  physicsRef: React.MutableRefObject<PhysicsEngine | null>, 
+const SimulationLoop = ({
+  physicsRef,
+  bodiesRef,
+  statsCacheRef,
+  setStats,
+  isRunning,
+  speed
+}: {
+  physicsRef: React.MutableRefObject<PhysicsEngine | null>,
   bodiesRef: React.MutableRefObject<BodyState[]>,
+  statsCacheRef: React.MutableRefObject<ReturnType<PhysicsEngine['getStats']> | null>,
   setStats: (s: SimulationStats) => void,
   isRunning: boolean,
   speed: number
@@ -40,8 +42,10 @@ const SimulationLoop = ({
 
     // Update UI stats less frequently (every 10 frames) to save React cycles
     frameCount.current++;
-    if (frameCount.current % 10 === 0) {
-        const rawStats = physicsRef.current.getStats();
+    if (frameCount.current % 10 === 0 && physicsRef.current) {
+        const rawStats = statsCacheRef.current || physicsRef.current.getStats();
+        statsCacheRef.current = rawStats;
+
         setStats({
             ...rawStats,
             era: rawStats.habitable ? 'Stable' : 'Chaotic', // Simplified logic
@@ -71,8 +75,9 @@ export default function App() {
   });
 
   // We use Refs for the heavy lifting (physics state) to avoid React re-renders on every frame
-  const bodiesRef = useRef<BodyState[]>([]); 
+  const bodiesRef = useRef<BodyState[]>([]);
   const physicsRef = useRef<PhysicsEngine | null>(null);
+  const energyStatsRef = useRef<ReturnType<PhysicsEngine['getStats']> | null>(null);
 
   // Initialize simulation
   const initSimulation = useCallback((presetName: PresetName) => {
@@ -90,13 +95,19 @@ export default function App() {
     physicsRef.current = new PhysicsEngine(initialBodies, {
       G: G_CONST,
       timeStep: DEFAULT_TIME_STEP,
-      softening: 0.15
+      softening: 0.15,
+      energySampleInterval: 1
     });
     setCurrentPreset(presetName);
-    
+
     // Reset stats
     if (physicsRef.current) {
+        physicsRef.current.setStatsCallback((s) => {
+          energyStatsRef.current = s;
+        });
+
         const s = physicsRef.current.getStats();
+        energyStatsRef.current = s;
         setStats({ ...s, era: 'Stable', timeElapsed: 0, fps: 60 });
     }
   }, []);
@@ -126,11 +137,12 @@ export default function App() {
         <ambientLight intensity={theme === 'dark' ? 0.1 : 0.8} />
         {theme === 'light' && <directionalLight position={[10, 10, 5]} intensity={0.5} castShadow />}
         
-        <SimulationLoop 
-          physicsRef={physicsRef} 
+        <SimulationLoop
+          physicsRef={physicsRef}
           bodiesRef={bodiesRef}
-          setStats={setStats} 
-          isRunning={isRunning} 
+          statsCacheRef={energyStatsRef}
+          setStats={setStats}
+          isRunning={isRunning}
           speed={simulationSpeed}
         />
 

@@ -1,5 +1,12 @@
 import { BodyState, Vector3, SimulationConfig } from '../types';
 
+type EnergyStats = {
+  totalEnergy: number;
+  kineticEnergy: number;
+  potentialEnergy: number;
+  habitable: boolean;
+};
+
 interface DerivativeBuffer {
   dPos: Vector3[]; // Velocities
   dVel: Vector3[]; // Accelerations
@@ -16,6 +23,10 @@ export class PhysicsEngine {
   private k4: DerivativeBuffer;
   private tempBodies: BodyState[]; // Scratchpad for intermediate RK4 states
   private numBodies: number;
+  private energySampleInterval: number;
+  private timeSinceLastEnergySample = 0;
+  private statsCache: EnergyStats | null = null;
+  private statsCallback?: (stats: EnergyStats) => void;
 
   constructor(initialBodies: BodyState[], config: SimulationConfig) {
     // Deep copy initial state to ensure we have our own mutable instances
@@ -24,9 +35,10 @@ export class PhysicsEngine {
         position: { ...b.position },
         velocity: { ...b.velocity }
     }));
-    
+
     this.config = config;
     this.numBodies = this.bodies.length;
+    this.energySampleInterval = config.energySampleInterval ?? 1;
 
     // Initialize buffers
     this.k1 = this.createDerivativeBuffer(this.numBodies);
@@ -39,11 +51,14 @@ export class PhysicsEngine {
         ...b,
         position: { x:0, y:0, z:0 },
         velocity: { x:0, y:0, z:0 }
-        // Mass/Radius/etc are read from this.bodies or copied here if needed, 
+        // Mass/Radius/etc are read from this.bodies or copied here if needed,
         // but for calculation only position/velocity change in temp. 
         // However, calculateAccelerations reads mass from the object passed to it.
         // So we must ensure tempBodies has correct mass.
     }));
+
+    // Seed initial stats cache so UI reads don't trigger immediate recomputation
+    this.statsCache = this.calculateEnergyStats();
   }
 
   private createDerivativeBuffer(n: number): DerivativeBuffer {
@@ -150,6 +165,13 @@ export class PhysicsEngine {
       }
   }
 
+  setStatsCallback(cb?: (stats: EnergyStats) => void) {
+    this.statsCallback = cb;
+    if (cb && this.statsCache) {
+      cb(this.statsCache);
+    }
+  }
+
   step(dt: number) {
       // RK4 Integration Steps
       // Note: We reuse this.bodies and the k buffers, creating NO new objects here.
@@ -192,69 +214,87 @@ export class PhysicsEngine {
           body.velocity.y += (k1v.y + 2*k2v.y + 2*k3v.y + k4v.y) * dtDiv6;
           body.velocity.z += (k1v.z + 2*k2v.z + 2*k3v.z + k4v.z) * dtDiv6;
       }
+
+      this.timeSinceLastEnergySample += dt;
+      if (this.timeSinceLastEnergySample >= this.energySampleInterval) {
+          this.statsCache = this.calculateEnergyStats();
+          this.timeSinceLastEnergySample = 0;
+
+          if (this.statsCallback) {
+            this.statsCallback(this.statsCache);
+          }
+      }
+  }
+
+  private calculateEnergyStats(): EnergyStats {
+      let potential = 0;
+      let kinetic = 0;
+      let habitable = false;
+
+      const n = this.numBodies;
+      // Optimized: Avoid .find and .filter to reduce allocations
+      let planet: BodyState | null = null;
+      const stars: BodyState[] = [];
+
+      // Single pass to categorize
+      for(let i=0; i<n; i++) {
+          const b = this.bodies[i];
+          if (b.isStar) {
+              stars.push(b);
+          } else {
+              planet = b;
+          }
+          // Kinetic Energy: 0.5 * m * v^2
+          const vSq = b.velocity.x**2 + b.velocity.y**2 + b.velocity.z**2;
+          kinetic += 0.5 * b.mass * vSq;
+      }
+
+      // Potential Energy: -G * m1 * m2 / r
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const b1 = this.bodies[i];
+          const b2 = this.bodies[j];
+          const dx = b1.position.x - b2.position.x;
+          const dy = b1.position.y - b2.position.y;
+          const dz = b1.position.z - b2.position.z;
+          const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+          potential -= (this.config.G * b1.mass * b2.mass) / dist;
+        }
+      }
+
+      // Simple Habitable Check
+      if (planet) {
+        let minStarDist = Infinity;
+        for (const star of stars) {
+          const dx = star.position.x - planet.position.x;
+          const dy = star.position.y - planet.position.y;
+          const dz = star.position.z - planet.position.z;
+          const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+          const optimalDist = Math.sqrt(star.mass) * 1.5;
+          if (Math.abs(dist - optimalDist) < optimalDist * 0.3) {
+             habitable = true;
+          }
+          if (dist < minStarDist) minStarDist = dist;
+        }
+
+        // If too close, it burns
+        if (minStarDist < 2) habitable = false;
+      }
+
+      return {
+        totalEnergy: kinetic + potential,
+        kineticEnergy: kinetic,
+        potentialEnergy: potential,
+        habitable
+      };
   }
 
   getStats() {
-    let potential = 0;
-    let kinetic = 0;
-    let habitable = false;
-    
-    const n = this.numBodies;
-    // Optimized: Avoid .find and .filter to reduce allocations
-    let planet: BodyState | null = null;
-    const stars: BodyState[] = [];
-
-    // Single pass to categorize
-    for(let i=0; i<n; i++) {
-        const b = this.bodies[i];
-        if (b.isStar) {
-            stars.push(b);
-        } else {
-            planet = b;
-        }
-        // Kinetic Energy: 0.5 * m * v^2
-        const vSq = b.velocity.x**2 + b.velocity.y**2 + b.velocity.z**2;
-        kinetic += 0.5 * b.mass * vSq;
+    if (!this.statsCache) {
+      this.statsCache = this.calculateEnergyStats();
     }
 
-    // Potential Energy: -G * m1 * m2 / r
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        const b1 = this.bodies[i];
-        const b2 = this.bodies[j];
-        const dx = b1.position.x - b2.position.x;
-        const dy = b1.position.y - b2.position.y;
-        const dz = b1.position.z - b2.position.z;
-        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-        potential -= (this.config.G * b1.mass * b2.mass) / dist;
-      }
-    }
-
-    // Simple Habitable Check
-    if (planet) {
-      let minStarDist = Infinity;
-      for (const star of stars) {
-        const dx = star.position.x - planet.position.x;
-        const dy = star.position.y - planet.position.y;
-        const dz = star.position.z - planet.position.z;
-        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-        
-        const optimalDist = Math.sqrt(star.mass) * 1.5; 
-        if (Math.abs(dist - optimalDist) < optimalDist * 0.3) {
-           habitable = true;
-        }
-        if (dist < minStarDist) minStarDist = dist;
-      }
-      
-      // If too close, it burns
-      if (minStarDist < 2) habitable = false;
-    }
-
-    return {
-      totalEnergy: kinetic + potential,
-      kineticEnergy: kinetic,
-      potentialEnergy: potential,
-      habitable
-    };
+    return this.statsCache;
   }
 }
