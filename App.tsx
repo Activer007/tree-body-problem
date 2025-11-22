@@ -63,6 +63,7 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(true);
   const [simulationSpeed, setSimulationSpeed] = useState(1.0);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [resetKey, setResetKey] = useState(0); // Key to force remount and clear trails
   
   const [stats, setStats] = useState<SimulationStats>({
     totalEnergy: 0,
@@ -99,6 +100,9 @@ export default function App() {
       energySampleInterval: 1
     });
     setCurrentPreset(presetName);
+    
+    // Increment resetKey to force remount of BodyVisual components and clear trails
+    setResetKey(prev => prev + 1);
 
     // Reset stats
     if (physicsRef.current) {
@@ -149,10 +153,10 @@ export default function App() {
         <group>
            {/* We render based on the initial bodies length. 
                The individual BodyVisual components pull their realtime position from the ref.
-               This key={currentPreset} forces a full remount of the scene when preset changes. */}
+               This key includes resetKey to force a full remount when reset is clicked, clearing trails. */}
            {physicsRef.current && physicsRef.current.bodies.map((body, idx) => (
              <BodyVisual 
-                key={`${currentPreset}-${idx}`} 
+                key={`${resetKey}-${idx}`} 
                 index={idx}
                 body={body} 
                 simulationRef={bodiesRef} 
