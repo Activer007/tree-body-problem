@@ -22,24 +22,74 @@ const createBody = (
   isStar
 });
 
+/**
+ * Helper function to generate a random position that maintains minimum distance
+ * from all existing positions
+ */
+const generateDistantPosition = (
+  existingPositions: [number, number, number][],
+  minDistance: number,
+  maxAttempts: number = 50
+): [number, number, number] => {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const pos: [number, number, number] = [
+      (Math.random() - 0.5) * 24, // Expanded range: ±12 units
+      (Math.random() - 0.5) * 24,
+      (Math.random() - 0.5) * 24
+    ];
+
+    // Check distance from all existing positions
+    const isFarEnough = existingPositions.every(existingPos => {
+      const dx = pos[0] - existingPos[0];
+      const dy = pos[1] - existingPos[1];
+      const dz = pos[2] - existingPos[2];
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      return distance >= minDistance;
+    });
+
+    if (isFarEnough) {
+      return pos;
+    }
+  }
+
+  // Fallback: return a position even if it doesn't meet minimum distance
+  // (to avoid infinite loops)
+  return [
+    (Math.random() - 0.5) * 24,
+    (Math.random() - 0.5) * 24,
+    (Math.random() - 0.5) * 24
+  ];
+};
+
 export const generateRandomScenario = (): BodyState[] => {
   const bodies: BodyState[] = [];
   const colors = ['#ffaa00', '#00aaff', '#ff4444'];
+  const positions: [number, number, number][] = [];
 
-  // Generate 3 Stars with random positions and small random velocities
+  // Minimum distance between any two bodies (in simulation units)
+  const MIN_DISTANCE_BETWEEN_STARS = 12; // Distance between stars
+  const MIN_DISTANCE_PLANET_TO_STAR = 8; // Distance from planet to any star
+
+  /**
+   * Generate 3 Stars with random positions and random velocities
+   * Each star gets:
+   * - Random position maintaining minimum distance from other stars
+   * - Random velocity direction (spherical coordinates)
+   * - Random velocity magnitude (0.05 - 0.25)
+   * - Random mass (8-15)
+   */
   for (let i = 0; i < 3; i++) {
-    // Random position within a cube of +/- 6 units
-    const pos: [number, number, number] = [
-      (Math.random() - 0.5) * 12,
-      (Math.random() - 0.5) * 12,
-      (Math.random() - 0.5) * 12
-    ];
+    // Generate position that maintains minimum distance from other stars
+    const pos = generateDistantPosition(positions, MIN_DISTANCE_BETWEEN_STARS);
+    positions.push(pos);
 
-    // Random spherical velocity with small magnitude (0.05 - 0.25) for chaotic but sustained interaction
+    // Random spherical velocity with magnitude (0.05 - 0.25) for chaotic but sustained interaction
+    // Using spherical coordinates: theta (azimuth), phi (polar angle)
     const speed = 0.05 + Math.random() * 0.20;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
+    const theta = Math.random() * Math.PI * 2; // Azimuth: 0 to 2π
+    const phi = Math.acos(2 * Math.random() - 1); // Polar angle: 0 to π (uniform on sphere)
 
+    // Convert spherical to Cartesian coordinates
     const vel: [number, number, number] = [
       speed * Math.sin(phi) * Math.cos(theta),
       speed * Math.sin(phi) * Math.sin(theta),
@@ -48,7 +98,7 @@ export const generateRandomScenario = (): BodyState[] => {
 
     bodies.push(createBody(
       `Star ${String.fromCharCode(65 + i)}`,
-      8 + Math.random() * 7, // Mass 8-15
+      8 + Math.random() * 7, // Random mass: 8-15
       pos,
       vel,
       colors[i],
@@ -56,12 +106,26 @@ export const generateRandomScenario = (): BodyState[] => {
     ));
   }
 
-  // Generate Planet
+  // Generate Planet with random position and velocity
+  // Planet position must maintain minimum distance from all stars
+  const planetPos = generateDistantPosition(positions, MIN_DISTANCE_PLANET_TO_STAR);
+
+  // Random spherical velocity for planet
+  const planetSpeed = 0.1 + Math.random() * 0.4;
+  const planetTheta = Math.random() * Math.PI * 2;
+  const planetPhi = Math.acos(2 * Math.random() - 1);
+
+  const planetVel: [number, number, number] = [
+    planetSpeed * Math.sin(planetPhi) * Math.cos(planetTheta),
+    planetSpeed * Math.sin(planetPhi) * Math.sin(planetTheta),
+    planetSpeed * Math.cos(planetPhi)
+  ];
+
   bodies.push(createBody(
     'Planet',
     0.01,
-    [(Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20],
-    [(Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5],
+    planetPos,
+    planetVel,
     '#ffffff',
     false
   ));
