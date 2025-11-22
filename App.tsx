@@ -204,6 +204,9 @@ export default function App() {
     // Increment resetKey to force remount of BodyVisual components and clear trails
     setResetKey(prev => prev + 1);
 
+    // Reset camera to fit the new scenario
+    setResetCameraKey(prev => prev + 1);
+
     // Reset stats
     if (physicsRef.current) {
         physicsRef.current.setStatsCallback((s) => {
@@ -222,11 +225,10 @@ export default function App() {
   }, [initSimulation]);
 
   // Calculate trail length based on speed to avoid clutter
-  // High speed = shorter trail history
   const getTrailLength = (speed: number) => {
-      if (speed > 8) return 30;
-      if (speed > 5) return 60;
-      if (speed > 2) return 100;
+      if (speed > 8) return 60;
+      if (speed > 5) return 80;
+      if (speed > 2) return 120;
       return 200;
   };
 

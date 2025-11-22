@@ -378,7 +378,7 @@ video {
   min-width:150px
 }
 .max-w-md {
-  max-width:28rem
+  max-width:18rem
 }
 .cursor-pointer {
   cursor:pointer
@@ -625,7 +625,13 @@ video {
 .backdrop-blur-md {
   --tw-backdrop-blur:blur(12px);
   -webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-  backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)
+  backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+  opacity: 0.6;
+}
+.backdrop-blur-md:hover {
+ opacity: 0.85;
+ /* transition:ease-out opacity 0.5s ease; */
+ border: 1px solid #18dbfe95 ;
 }
 .backdrop-blur-sm {
   --tw-backdrop-blur:blur(4px);

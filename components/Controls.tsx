@@ -69,7 +69,7 @@ export const Controls: React.FC<ControlsProps> = ({
                {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
-          <p className={`text-xs ${subTextClass} font-mono`}>Runge-Kutta 4 N-Body Physics Engine</p>
+          <p className={`text-xs ${subTextClass} font-mono`}>3-Body Physics Engine</p>
           
           <div className="mt-4 space-y-2">
             <label className={`text-xs font-bold ${labelClass} uppercase`}>Scenario Preset</label>
@@ -125,7 +125,7 @@ export const Controls: React.FC<ControlsProps> = ({
 
       {/* Bottom Controls */}
       <div className="flex justify-center pointer-events-auto">
-        <div className={`${containerClass} p-4 rounded-xl flex items-center gap-6 transition-colors duration-300`} style={containerBgStyle}>
+        <div className={`${containerClass} p-2 rounded-xl flex items-center gap-6 transition-colors duration-300`} style={containerBgStyle}>
             <button 
                 onClick={() => setIsRunning(!isRunning)}
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
@@ -182,6 +182,8 @@ export const Controls: React.FC<ControlsProps> = ({
                     className={`accent-cyan-500 h-1 ${isDark ? 'bg-gray-500/30' : 'bg-slate-200'} rounded-lg cursor-pointer`}
                 />
             </div>
+            <div></div>
+
         </div>
       </div>
     </div>
