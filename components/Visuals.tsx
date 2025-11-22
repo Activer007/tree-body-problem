@@ -1,8 +1,47 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Trail, Html, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { BodyState } from '../types';
+
+// ============================================================================
+// 性能优化：Color 对象池，避免每帧创建新对象
+// ============================================================================
+class ColorPool {
+  private pool: THREE.Color[] = [];
+  private static instance: ColorPool;
+
+  static getInstance(): ColorPool {
+    if (!ColorPool.instance) {
+      ColorPool.instance = new ColorPool();
+    }
+    return ColorPool.instance;
+  }
+
+  /**
+   * 从池中获取一个 Color 对象，或创建新的
+   * @param colorHex 十六进制颜色字符串 (如 '#ff0000')
+   */
+  acquire(colorHex: string): THREE.Color {
+    const color = this.pool.pop() || new THREE.Color();
+    color.setStyle(colorHex);
+    return color;
+  }
+
+  /**
+   * 将 Color 对象返回到池中供复用
+   */
+  release(color: THREE.Color): void {
+    this.pool.push(color);
+  }
+
+  /**
+   * 清空对象池
+   */
+  clear(): void {
+    this.pool = [];
+  }
+}
 
 interface BodyVisualProps {
   body: BodyState;
@@ -110,12 +149,33 @@ const StarMesh: React.FC<{ radius: number; color: string; name: string; theme: '
 export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, index, traceLength, theme }) => {
   const groupRef = useRef<THREE.Group>(null);
 
-  // 行星颜色：以蓝色为主（参照地球风格）
-  // 深色主题：白色与蓝色相间混合
-  const darkPlanetColor = body.isStar ? body.color : '#2563eb'; // 深色主题用更亮的蓝色
-  const lightPlanetColor = new THREE.Color('#1e40af').lerp(new THREE.Color('#3b82f6'), 0.4);
-  lightPlanetColor.offsetHSL(0, 0.1, 0.12);
-  const planetColor = theme === 'dark' ? darkPlanetColor : lightPlanetColor.getStyle();
+  // ============================================================================
+  // 性能优化：使用 useMemo 缓存颜色计算和 Color 对象
+  // 避免每次渲染都创建新的 THREE.Color 对象
+  // ============================================================================
+  const { planetColor, trailColor } = useMemo(() => {
+    // 行星颜色：以蓝色为主（参照地球风格）
+    // 深色主题：白色与蓝色相间混合
+    const darkPlanetColor = body.isStar ? body.color : '#2563eb'; // 深色主题用更亮的蓝色
+    const lightPlanetColor = new THREE.Color('#1e40af').lerp(new THREE.Color('#3b82f6'), 0.4);
+    lightPlanetColor.offsetHSL(0, 0.1, 0.12);
+    const planetColorStr = theme === 'dark' ? darkPlanetColor : lightPlanetColor.getStyle();
+
+    const trailColorStr = body.isStar ? body.color : (theme === 'dark' ? '#e0f2fe' : '#0ea5e9');
+
+    return {
+      planetColor: planetColorStr,
+      trailColor: trailColorStr
+    };
+  }, [body.isStar, body.color, theme]);
+
+  // ============================================================================
+  // 性能优化：从对象池获取 Trail 颜色，避免每帧创建新对象
+  // ============================================================================
+  const cachedTrailColor = useMemo(() => {
+    const pool = ColorPool.getInstance();
+    return pool.acquire(trailColor);
+  }, [trailColor]);
 
   useFrame(() => {
     if (groupRef.current && simulationRef.current[index]) {
@@ -127,8 +187,6 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
       );
     }
   });
-
-  const trailColor = body.isStar ? body.color : (theme === 'dark' ? '#e0f2fe' : '#0ea5e9');
 
   return (
     <>
@@ -183,11 +241,16 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
         </Html>
       </group>
       
+      {/* ========================================================================
+          性能优化：Trail 组件
+          - 使用缓存的 Color 对象，避免每帧创建新对象
+          - 使用 useMemo 缓存 attenuation 函数，避免每次渲染都创建新函数
+          ======================================================================== */}
       <Trail
         width={body.isStar ? 1.6 : 0.8}
         length={traceLength}
-        color={new THREE.Color(trailColor)}
-        attenuation={(t) => t * t}
+        color={cachedTrailColor}
+        attenuation={useMemo(() => (t: number) => t * t, [])}
         target={groupRef} 
       >
          <mesh position={[0,0,0]} visible={false}><boxGeometry /></mesh>
