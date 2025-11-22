@@ -165,7 +165,6 @@ const createRosetteBodies = (): BodyState[] => {
     );
   }
 
-  rosetteBodies.push(createBody('Core', 0.5, [0, 0, 0], [0, 0, 0], '#ffffff', false));
 
   return rosetteBodies;
 };
