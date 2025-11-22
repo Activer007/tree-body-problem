@@ -31,7 +31,13 @@ export interface SimulationStats {
   fps: number;
 }
 
-export type PresetName = 'Figure8' | 'Random' | 'Hierarchical' | 'Lagrange' | 'ChaoticEjection';
+export type PresetName =
+  | 'Figure8'
+  | 'Random'
+  | 'Hierarchical'
+  | 'Lagrange'
+  | 'ChaoticEjection'
+  | 'LagrangeStable';
 
 export interface Preset {
   name: PresetName;
