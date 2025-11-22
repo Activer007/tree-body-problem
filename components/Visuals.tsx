@@ -110,9 +110,9 @@ export const BodyVisual: React.FC<BodyVisualProps> = ({ body, simulationRef, ind
             zIndexRange={[100, 0]}
             style={{ pointerEvents: 'none' }}
         >
-            <div className={`select-none text-xs font-mono px-2 rounded backdrop-blur-sm border whitespace-nowrap transition-colors duration-300
+            <div className={`select-none text-sm font-mono px-2 rounded backdrop-blur-sm border whitespace-nowrap transition-colors duration-300
                 ${theme === 'dark'
-                  ? 'text-white/90 bg-black/50 border-white/10 shadow-sm'
+                  ? 'text-white bg-black/50 border-white/10 shadow-sm'
                   : 'text-gray-900 bg-white/85 border-gray-200 shadow-md'
                 }`}>
                 {body.name}

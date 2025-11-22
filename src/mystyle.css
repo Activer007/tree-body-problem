@@ -598,6 +598,9 @@ video {
 .text-white\/80 {
   color:rgb(255 255 255 / 0.8)
 }
+.text-white {
+  color:rgb(255 255 255 / 0.8)
+}
 .text-green-500 {
   --tw-text-opacity:1;
   color:rgb(34 197 94 / var(--tw-text-opacity, 1))
