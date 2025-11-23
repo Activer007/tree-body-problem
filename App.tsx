@@ -41,8 +41,8 @@ const SimulationLoop = ({
       physicsRef.current.step(dt);
     }
 
-    // Sync visualization ref with physics state
-    bodiesRef.current = [...physicsRef.current.bodies];
+    // Sync visualization ref with physics state without creating new arrays
+    bodiesRef.current = physicsRef.current.bodies;
 
     // Update UI stats less frequently (every 20 frames) to save React cycles
     frameCount.current++;
