@@ -53,27 +53,38 @@ interface BodyVisualProps {
 }
 
 const StarMesh: React.FC<{ radius: number; color: string; name: string; theme: 'dark' | 'light' }> = ({ radius, color, name, theme }) => {
+  const gradientTextureRef = useRef<THREE.Texture | null>(null);
+
   // 创建径向渐变纹理以增强3D效果
-  const createRadialGradientTexture = () => {
+  const gradientTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
     const ctx = canvas.getContext('2d')!;
-    
+
     // 创建径向渐变：中心亮，边缘暗
     const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 180);
     gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.5)');
     gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
     gradient.addColorStop(0.9, 'rgba(255, 255, 255, 0.9)');
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 256, 256);
-    
+
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
-  };
+  }, [color, theme]);
 
-  const gradientTexture = createRadialGradientTexture();
+  useEffect(() => {
+    gradientTextureRef.current = gradientTexture;
+
+    return () => {
+      gradientTextureRef.current?.dispose();
+      gradientTextureRef.current = null;
+    };
+  }, [gradientTexture]);
+
+  const appliedGradientTexture = gradientTextureRef.current ?? gradientTexture;
 
   // 判断是否为黄色恒星（用于light主题下添加轮廓）
   // 黄色恒星包括：Sun A, Alpha, Star A，颜色通常为 #ffaa00, #ffcc00 , #ff6c00
@@ -85,11 +96,12 @@ const StarMesh: React.FC<{ radius: number; color: string; name: string; theme: '
         {/* Main Star Body - Using Standard Material with Emissive for safe, realistic glow */}
         <mesh>
             <sphereGeometry args={[radius, 32, 32]} />
-            <meshStandardMaterial 
-                color={new THREE.Color(color).multiplyScalar(0.8)} 
+            <meshStandardMaterial
+                color={new THREE.Color(color).multiplyScalar(0.8)}
                 emissive={color}
-                emissiveIntensity={2.5} 
-                toneMapped={false} 
+                emissiveMap={appliedGradientTexture}
+                emissiveIntensity={2.5}
+                toneMapped={false}
                 roughness={0.3}
                 metalness={0.05}
             />
