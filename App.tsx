@@ -33,9 +33,12 @@ const SimulationLoop = ({
     if (!isRunning || !physicsRef.current) return;
 
     // Run multiple physics steps per frame for stability at higher speeds
-    // Maximum time per frame to avoid "spiral of death" is usually capped
-    const steps = Math.ceil(speed * 2); 
-    const dt = (baseTimeStep * speed) / steps;
+    // Clamp substeps to avoid runaway CPU usage at extreme speeds
+    const targetFrameDuration = 1 / 60; // baseline for scaling delta
+    const effectiveSpeed = speed * (delta / targetFrameDuration);
+    const maxSubSteps = 12;
+    const steps = Math.min(maxSubSteps, Math.max(1, Math.ceil(effectiveSpeed * 2)));
+    const dt = (baseTimeStep * speed * (delta / targetFrameDuration)) / steps;
 
     for (let i = 0; i < steps; i++) {
       physicsRef.current.step(dt);
