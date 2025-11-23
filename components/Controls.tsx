@@ -25,6 +25,8 @@ interface ControlsProps {
   modeParams: Record<string, any>;
   onChangeModeParams: (next: Record<string, any>) => void;
   onApplyModeParams: () => void;
+  statsSampleIntervalMs: number;
+  setStatsSampleIntervalMs: (ms: number) => void;
 }
 
 export const Controls: React.FC<ControlsProps> = ({
@@ -45,7 +47,9 @@ export const Controls: React.FC<ControlsProps> = ({
   modeParameterSchema,
   modeParams,
   onChangeModeParams,
-  onApplyModeParams
+  onApplyModeParams,
+  statsSampleIntervalMs,
+  setStatsSampleIntervalMs
 }) => {
   const isDark = theme === 'dark';
 
@@ -225,6 +229,24 @@ export const Controls: React.FC<ControlsProps> = ({
                     ) : (
                         <span className="text-red-500 font-bold flex items-center gap-1"><AlertTriangle size={12}/> Extreme</span>
                     )}
+                </div>
+                <div className={`pt-2 border-t space-y-1 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+                  <div className="flex justify-between items-center">
+                    <span className={labelClass}>Sampling Interval</span>
+                    <span className={isDark ? 'text-cyan-200' : 'text-cyan-700'}>{statsSampleIntervalMs} ms</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={1000}
+                    step={50}
+                    value={statsSampleIntervalMs}
+                    onChange={(e) => setStatsSampleIntervalMs(parseInt(e.target.value, 10))}
+                    className={`w-full accent-cyan-500 h-1 ${isDark ? 'bg-gray-500/30' : 'bg-slate-200'} rounded-lg cursor-pointer`}
+                  />
+                  <p className={`text-[10px] leading-tight ${subTextClass}`}>
+                    Lower values improve accuracy; higher values reduce UI overhead.
+                  </p>
                 </div>
             </div>
         </div>

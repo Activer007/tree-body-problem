@@ -17,7 +17,8 @@ const SimulationLoop = ({
   setStats,
   isRunning,
   speed,
-  baseTimeStep
+  baseTimeStep,
+  statsSampleIntervalMs
 }: {
   physicsRef: React.MutableRefObject<PhysicsEngine | null>,
   bodiesRef: React.MutableRefObject<BodyState[]>,
@@ -25,9 +26,10 @@ const SimulationLoop = ({
   setStats: (s: SimulationStats) => void,
   isRunning: boolean,
   speed: number,
-  baseTimeStep: number
+  baseTimeStep: number,
+  statsSampleIntervalMs: number
 }) => {
-  const frameCount = useRef(0);
+  const lastStatsSampleTime = useRef(0);
 
   useFrame((state, delta) => {
     if (!isRunning || !physicsRef.current) return;
@@ -47,18 +49,20 @@ const SimulationLoop = ({
     // Sync visualization ref with physics state without creating new arrays
     bodiesRef.current = physicsRef.current.bodies;
 
-    // Update UI stats less frequently (every 20 frames) to save React cycles
-    frameCount.current++;
-    if (frameCount.current % 20 === 0 && physicsRef.current) {
-        const rawStats = statsCacheRef.current || physicsRef.current.getStats();
-        statsCacheRef.current = rawStats;
+    const elapsedMs = state.clock.elapsedTime * 1000;
+    const shouldSampleStats = elapsedMs - lastStatsSampleTime.current >= statsSampleIntervalMs;
 
-        setStats({
-            ...rawStats,
-            era: rawStats.habitable ? 'Stable' : 'Chaotic', // Simplified logic
-            timeElapsed: state.clock.elapsedTime,
-            fps: delta > 0 ? 1 / delta : 0
-        });
+    if (shouldSampleStats && physicsRef.current) {
+      const rawStats = physicsRef.current.getStats();
+      statsCacheRef.current = rawStats;
+      lastStatsSampleTime.current = elapsedMs;
+
+      setStats({
+        ...rawStats,
+        era: rawStats.habitable ? 'Stable' : 'Chaotic', // Simplified logic
+        timeElapsed: state.clock.elapsedTime,
+        fps: delta > 0 ? 1 / delta : 0
+      });
     }
   });
 
@@ -171,6 +175,7 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(true);
   const [simulationSpeed, setSimulationSpeed] = useState(1.0);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [statsSampleIntervalMs, setStatsSampleIntervalMs] = useState(300);
   const [resetKey, setResetKey] = useState(0); // Key to force remount and clear trails
   const [resetCameraKey, setResetCameraKey] = useState(0); // Key to trigger camera reset
   
@@ -317,6 +322,7 @@ export default function App() {
           isRunning={isRunning}
           speed={simulationSpeed}
           baseTimeStep={globalParams.timeStep}
+          statsSampleIntervalMs={statsSampleIntervalMs}
         />
 
         <group>
@@ -361,6 +367,8 @@ export default function App() {
         modeParams={modeParams}
         onChangeModeParams={handleChangeModeParams}
         onApplyModeParams={handleApplyModeParams}
+        statsSampleIntervalMs={statsSampleIntervalMs}
+        setStatsSampleIntervalMs={setStatsSampleIntervalMs}
       />
     </div>
   );
