@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 .claude/
 .claude/*
+claude.md
+AGENTS.md
 
 .VSCodeCounter/*
 coverage/*

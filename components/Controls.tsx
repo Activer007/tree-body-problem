@@ -74,7 +74,8 @@ export const Controls: React.FC<ControlsProps> = ({
     : "bg-white border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm";
 
   const schema = useMemo<ParameterMeta[]>(() => getGlobalParameterSchema(), []);
-  const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [telemetryAdvancedOpen, setTelemetryAdvancedOpen] = useState(false);
 
   // simple controlled draft uses parent globalParams directly
   const params = globalParams;
@@ -202,34 +203,49 @@ export const Controls: React.FC<ControlsProps> = ({
 
         {/* Stats Panel */}
         <div className={`${containerClass} p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`} style={containerBgStyle}>
-            <h3 className={`font-bold mb-2 border-b pb-1 ${isDark ? 'text-gray-400 border-gray-700' : 'text-gray-700 border-gray-300'}`}>Telemetry</h3>
+            <div className="flex items-center justify-between mb-2 border-b pb-1" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+              <h3 className={`font-bold ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Telemetry</h3>
+              <button 
+                onClick={() => setTelemetryAdvancedOpen(v => !v)}
+                className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-white/10 text-cyan-300' : 'hover:bg-black/5 text-cyan-700'}`}
+                title="Advanced Telemetry"
+              >
+                <Sliders size={14} />
+              </button>
+            </div>
             <div className="space-y-2">
                 <div className="flex justify-between">
-                    <span className={labelClass}>Sys Energy:</span>
-                    <span className={Math.abs(stats.totalEnergy) > 1000 ? 'text-red-500 font-bold' : (isDark ? 'text-cyan-300' : 'text-cyan-800 font-semibold')}>
-                        {stats.totalEnergy.toFixed(2)} J
-                    </span>
-                </div>
-                <div className="flex justify-between">
-                    <span className={labelClass}>Kinetic:</span>
-                    <span className={isDark ? "text-orange-300" : "text-orange-700"}>{stats.kineticEnergy.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className={labelClass}>Potential:</span>
-                    <span className={isDark ? "text-blue-300" : "text-blue-700"}>{stats.potentialEnergy.toFixed(2)}</span>
-                </div>
-                 <div className="flex justify-between">
                     <span className={labelClass}>FPS:</span>
                     <span className={isDark ? "text-green-300" : "text-green-700"}>{Math.round(stats.fps)}</span>
                 </div>
-                 <div className={`flex justify-between items-center mt-2 pt-2 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                    <span className={labelClass}>Planet Status:</span>
-                    {stats.habitable ? (
-                        <span className="text-green-500 font-bold flex items-center gap-1"><CheckCircle size={12}/> Habitable</span>
-                    ) : (
-                        <span className="text-red-500 font-bold flex items-center gap-1"><AlertTriangle size={12}/> Extreme</span>
-                    )}
-                </div>
+
+                {telemetryAdvancedOpen && (
+                  <>
+                    <div className="flex justify-between">
+                        <span className={labelClass}>Sys Energy:</span>
+                        <span className={Math.abs(stats.totalEnergy) > 1000 ? 'text-red-500 font-bold' : (isDark ? 'text-cyan-300' : 'text-cyan-800 font-semibold')}>
+                            {stats.totalEnergy.toFixed(2)} J
+                        </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className={labelClass}>Kinetic:</span>
+                        <span className={isDark ? "text-orange-300" : "text-orange-700"}>{stats.kineticEnergy.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className={labelClass}>Potential:</span>
+                        <span className={isDark ? "text-blue-300" : "text-blue-700"}>{stats.potentialEnergy.toFixed(2)}</span>
+                    </div>
+                     <div className={`flex justify-between items-center mt-2 pt-2 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+                        <span className={labelClass}>Planet Status:</span>
+                        {stats.habitable ? (
+                            <span className="text-green-500 font-bold flex items-center gap-1"><CheckCircle size={12}/> Habitable</span>
+                        ) : (
+                            <span className="text-red-500 font-bold flex items-center gap-1"><AlertTriangle size={12}/> Extreme</span>
+                        )}
+                    </div>
+                  </>
+                )}
+
                 <div className={`pt-2 border-t space-y-1 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
                   <div className="flex justify-between items-center">
                     <span className={labelClass}>Sampling Interval</span>
