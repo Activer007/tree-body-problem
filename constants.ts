@@ -4,7 +4,7 @@ export const G_CONST = 1.0; // Normalized Gravitational Constant for visualizati
 export const DEFAULT_TIME_STEP = 0.01;
 export const MAX_TRAIL_LENGTH = 300;
 
-const createBody = (
+export const createBody = (
   name: string,
   mass: number,
   pos: [number, number, number],
@@ -26,7 +26,7 @@ const createBody = (
  * Helper function to generate a random position that maintains minimum distance
  * from all existing positions
  */
-const generateDistantPosition = (
+export const generateDistantPosition = (
   existingPositions: [number, number, number][],
   minDistance: number,
   maxAttempts: number = 50

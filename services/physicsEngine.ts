@@ -29,6 +29,10 @@ export class PhysicsEngine {
   private statsCallback?: (stats: EnergyStats) => void;
   private currentTime = 0;
 
+  // Stability control system (new)
+  private stabilityController?: any; // Type: StabilityController['onBeforeStep']
+  private initialEnergy: number | null = null; // For tracking energy conservation
+
   constructor(initialBodies: BodyState[], config: SimulationConfig) {
     // Deep copy initial state to ensure we have our own mutable instances
     this.bodies = initialBodies.map(b => ({
@@ -190,7 +194,92 @@ export class PhysicsEngine {
     }
   }
 
+  // Stability control system methods (new)
+
+  /**
+   * Set stability controller for preset-specific stability monitoring
+   */
+  setStabilityController(controller?: any) {
+    this.stabilityController = controller;
+    if (!this.initialEnergy) {
+      // Record initial energy for conservation tracking
+      const stats = this.calculateEnergyStats();
+      this.initialEnergy = stats.totalEnergy;
+    }
+  }
+
+  /**
+   * Apply parameter overrides (dynamic time step, softening, etc.)
+   */
+  applyParameterOverrides(overrides: Partial<SimulationConfig>) {
+    if (overrides.timeStep !== undefined) {
+      this.config.timeStep = overrides.timeStep;
+    }
+    if (overrides.softening !== undefined) {
+      this.config.softening = overrides.softening;
+    }
+    if (overrides.G !== undefined) {
+      this.config.G = overrides.G;
+    }
+    if (overrides.energySampleInterval !== undefined) {
+      this.config.energySampleInterval = overrides.energySampleInterval;
+      this.energySampleInterval = overrides.energySampleInterval;
+    }
+    if (overrides.controller !== undefined) {
+      this.config.controller = overrides.controller;
+    }
+  }
+
+  /**
+   * Get current configuration (for UI display)
+   */
+  getConfig(): SimulationConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Set configuration (full replacement)
+   */
+  setConfig(config: SimulationConfig) {
+    this.config = config;
+    this.energySampleInterval = config.energySampleInterval ?? 1;
+  }
+
+  /**
+   * Get energy deviation from initial state
+   */
+  getEnergyDeviation(): number {
+    if (!this.initialEnergy) return 0;
+
+    const stats = this.calculateEnergyStats();
+    const deviation = Math.abs(stats.totalEnergy - this.initialEnergy) /
+                      (Math.abs(this.initialEnergy) + 0.001);
+    return deviation;
+  }
+
   step(dt: number) {
+    // Call stability controller before step (if any)
+    if (this.stabilityController) {
+      const controllerResult = this.stabilityController(this.bodies, this.currentTime, dt);
+
+      if (controllerResult) {
+        // Apply parameter overrides
+        if (controllerResult.paramOverrides) {
+          this.applyParameterOverrides(controllerResult.paramOverrides);
+        }
+
+        // Update controller
+        if (controllerResult.controller) {
+          this.config.controller = controllerResult.controller;
+        }
+
+        // Controller can return early (e.g., for UI feedback only)
+        if (Object.keys(controllerResult).length > 0) {
+          // Log or process other controller results (e.g., uiFeedback)
+          // This can be extended to communicate with the UI layer
+        }
+      }
+    }
       // RK4 Integration Steps
       // Note: We reuse this.bodies and the k buffers, creating NO new objects here.
       
@@ -287,19 +376,19 @@ export class PhysicsEngine {
           
           // Check habitable conditions (only if we have a planet)
           if (planet) {
-            // Check if this pair involves the planet
-            const isPlanetPair = (b1 === planet && !b2.isStar) || (b2 === planet && !b1.isStar);
+            // Check if this pair is planet-star
+            const isPlanetStarPair = (b1 === planet && b2.isStar) || (b2 === planet && b1.isStar);
             
-            if (isPlanetPair) {
+            if (isPlanetStarPair) {
               const star = b1.isStar ? b1 : b2;
               const optimalDist = Math.sqrt(star.mass) * 1.5;
               
-              // Check if within habitable zone
+              // Check if within habitable zone band around optimal distance
               if (Math.abs(dist - optimalDist) < optimalDist * 0.3) {
                  habitable = true;
               }
               
-              // Track minimum distance to any star
+              // Track minimum distance planet-to-any-star
               if (dist < minStarDist) {
                 minStarDist = dist;
               }

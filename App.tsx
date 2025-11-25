@@ -18,7 +18,8 @@ const SimulationLoop = ({
   isRunning,
   speed,
   baseTimeStep,
-  statsSampleIntervalMs
+  statsSampleIntervalMs,
+  resetTimeRef
 }: {
   physicsRef: React.MutableRefObject<PhysicsEngine | null>,
   bodiesRef: React.MutableRefObject<BodyState[]>,
@@ -27,12 +28,21 @@ const SimulationLoop = ({
   isRunning: boolean,
   speed: number,
   baseTimeStep: number,
-  statsSampleIntervalMs: number
+  statsSampleIntervalMs: number,
+  resetTimeRef: React.MutableRefObject<boolean>
 }) => {
   const lastStatsSampleTime = useRef(0);
 
   useFrame((state, delta) => {
     if (!isRunning || !physicsRef.current) return;
+
+    // Handle time reset (on preset change or reset button)
+    if (resetTimeRef.current) {
+      // Reset the Three.js clock
+      state.clock.start();
+      lastStatsSampleTime.current = 0;
+      resetTimeRef.current = false;
+    }
 
     // Run multiple physics steps per frame for stability at higher speeds
     // Clamp substeps to avoid runaway CPU usage at extreme speeds
@@ -40,9 +50,11 @@ const SimulationLoop = ({
     const effectiveSpeed = speed * (delta / targetFrameDuration);
     const maxSubSteps = 12;
     const steps = Math.min(maxSubSteps, Math.max(1, Math.ceil(effectiveSpeed * 2)));
-    const dt = (baseTimeStep * speed * (delta / targetFrameDuration)) / steps;
-
     for (let i = 0; i < steps; i++) {
+      const { timeStep } = physicsRef.current.getConfig();
+      const effectiveTimeStep = timeStep ?? baseTimeStep;
+      const dt = (effectiveTimeStep * speed * (delta / targetFrameDuration)) / steps;
+
       physicsRef.current.step(dt);
     }
 
@@ -193,6 +205,7 @@ export default function App() {
   const bodiesRef = useRef<BodyState[]>([]);
   const physicsRef = useRef<PhysicsEngine | null>(null);
   const energyStatsRef = useRef<ReturnType<PhysicsEngine['getStats']> | null>(null);
+  const resetTimeRef = useRef<boolean>(false); // Flag to reset simulation time
 
   function defaultsFromSchema(schema: ParameterMeta[]): Record<string, any> {
     const obj: Record<string, any> = {};
@@ -219,15 +232,23 @@ export default function App() {
       energySampleInterval: 1,
       controller
     });
+    // Attach stability controller if available
+    const stability = mode.createStabilityController ? mode.createStabilityController(initialBodies, params) : undefined;
+    if (stability && physicsRef.current) {
+      physicsRef.current.setStabilityController(stability.onBeforeStep);
+    }
     setCurrentPreset(modeId);
-    
+
+    // Reset simulation time
+    resetTimeRef.current = true;
+
     // Increment resetKey to force remount of BodyVisual components and clear trails
     setResetKey(prev => prev + 1);
 
     // Reset camera to fit the new scenario
     setResetCameraKey(prev => prev + 1);
 
-    // Reset stats
+    // Reset stats (time will be updated by SimulationLoop after clock reset)
     if (physicsRef.current) {
         physicsRef.current.setStatsCallback((s) => {
           energyStatsRef.current = s;
@@ -274,6 +295,11 @@ export default function App() {
       energySampleInterval: 1,
       controller
     });
+    // Attach stability controller if available
+    const stability = mode.createStabilityController ? mode.createStabilityController(currentBodies, modeParams) : undefined;
+    if (stability && physicsRef.current) {
+      physicsRef.current.setStabilityController(stability.onBeforeStep);
+    }
 
     // Force remount visuals (clear trails) and refresh camera target if needed
     setResetKey(prev => prev + 1);
@@ -323,6 +349,7 @@ export default function App() {
           speed={simulationSpeed}
           baseTimeStep={globalParams.timeStep}
           statsSampleIntervalMs={statsSampleIntervalMs}
+          resetTimeRef={resetTimeRef}
         />
 
         <group>

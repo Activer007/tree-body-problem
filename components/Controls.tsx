@@ -95,14 +95,14 @@ export const Controls: React.FC<ControlsProps> = ({
               <Activity className="w-5 h-5" /> Trisolaris
             </h1>
             <div className="flex items-center gap-1">
-              <button 
+              <button
                 onClick={() => setAdvancedOpen(v => !v)}
                 className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-cyan-300' : 'hover:bg-black/5 text-cyan-700'}`}
                 title="Advanced Parameters"
               >
                 <Sliders size={18} />
               </button>
-              <button 
+              <button
                  onClick={() => setTheme(isDark ? 'light' : 'dark')}
                  className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-yellow-400' : 'hover:bg-black/5 text-slate-600'}`}
                  title="Toggle Theme"
@@ -201,19 +201,32 @@ export const Controls: React.FC<ControlsProps> = ({
           )}
         </div>
 
-        {/* Stats Panel */}
+        {/* Stats Panel (Info) */}
         <div className={`${containerClass} p-4 rounded-lg w-64 font-mono text-xs pointer-events-auto transition-colors duration-300`} style={containerBgStyle}>
-            <div className="flex items-center justify-between mb-2 border-b pb-1" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
-              <h3 className={`font-bold ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Telemetry</h3>
-              <button 
+            {/* Info Title */}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className={`font-bold ${isDark ? 'text-gray-400' : 'text-gray-700'} uppercase text-xs`}>
+                Info
+              </h3>
+              <button
                 onClick={() => setTelemetryAdvancedOpen(v => !v)}
                 className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-white/10 text-cyan-300' : 'hover:bg-black/5 text-cyan-700'}`}
-                title="Advanced Telemetry"
+                title="Advanced Info"
               >
                 <Sliders size={14} />
               </button>
             </div>
             <div className="space-y-2">
+                {/* Time Information */}
+                <div className="flex justify-between">
+                    <span className={labelClass}>Time:</span>
+                    <span className={isDark ? "text-cyan-300" : "text-cyan-700"}>{stats.timeElapsed.toFixed(1)}</span>
+                </div>
+                <div className={`flex justify-between text-[11px] ${subTextClass} -mt-1`}>
+                    <span></span>
+                    <span>Physics Units</span>
+                </div>
+
                 <div className="flex justify-between">
                     <span className={labelClass}>FPS:</span>
                     <span className={isDark ? "text-green-300" : "text-green-700"}>{Math.round(stats.fps)}</span>

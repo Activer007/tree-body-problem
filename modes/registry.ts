@@ -1,6 +1,11 @@
 import { Mode, ModeId, BodyState, SimulationConfig, ParameterMeta, ModeParams } from '../types';
 import { PRESETS, generateRandomScenario } from '../constants';
 import { makeRosetteController } from '../services/controllers/rosetteController';
+import { createFigure8Controller } from '../services/controllers/Figure8Controller';
+import { createHierarchicalController } from '../services/controllers/HierarchicalController';
+import { createLagrangeStableController } from '../services/controllers/LagrangeStableController';
+import { createChaoticEjectionController } from '../services/controllers/ChaoticEjectionController';
+import { createRandomRuntimeMonitor } from '../services/controllers/RandomController';
 
 function deepCopyBodies(bodies: BodyState[]): BodyState[] {
   return bodies.map(b => ({
@@ -35,6 +40,28 @@ const modes: Mode[] = PRESETS.map((preset) => {
     ];
     base.parameters = params;
     base.createController = (initialBodies, p?: ModeParams) => makeRosetteController(initialBodies, p || {}) as SimulationConfig['controller'];
+  }
+
+  // Attach stability controllers per mode
+  switch (preset.name) {
+    case 'Figure8':
+      base.createStabilityController = () => createFigure8Controller();
+      break;
+    case 'Hierarchical':
+      base.createStabilityController = () => createHierarchicalController();
+      break;
+    case 'LagrangeStable':
+      base.createStabilityController = () => createLagrangeStableController();
+      break;
+    case 'ChaoticEjection':
+      base.createStabilityController = () => createChaoticEjectionController();
+      break;
+    case 'Random':
+      base.createStabilityController = () => createRandomRuntimeMonitor().controller;
+      break;
+    case 'Rosette':
+      // Optional: no stability controller or reuse a gentle correction later
+      break;
   }
 
   return base;

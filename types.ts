@@ -30,6 +30,44 @@ export interface SimulationStats {
   era: 'Stable' | 'Chaotic' | 'Apocalypse';
   timeElapsed: number;
   fps: number;
+  // Stability metrics (extended for stability control system)
+  energyDeviation?: number;      // Relative deviation from initial energy
+  virialRatio?: number;          // 2K/|U|, measure of equilibrium
+  symmetryScore?: number;        // 0-1, geometric symmetry score
+  minPairwiseDistance?: number;  // Minimum distance between any two bodies
+  maxPairwiseDistance?: number;  // Maximum distance (ejection detection)
+  angularMomentumZ?: number;     // Z-component of total angular momentum
+  spatialSpread?: number;        // Spatial spread measure
+  stabilityStatus?: 'stable' | 'warning' | 'critical';  // Overall stability status
+}
+
+// Stability metrics interface for detailed analysis
+export interface StabilityMetrics {
+  // Energy metrics
+  totalEnergy: number;
+  kineticEnergy: number;
+  potentialEnergy: number;
+  energyDeviation: number;       // |E(t) - E(0)| / |E(0)|
+  virialRatio: number;           // 2K/|U|
+
+  // Geometric metrics
+  centroid: Vector3;
+  radiusStd: number;              // Standard deviation of distances from centroid
+  symmetryScore: number;         // 0-1, geometric symmetry (1 = perfect)
+  minDistance: number;           // Minimum pairwise distance
+  maxDistance: number;           // Maximum pairwise distance (ejection detection)
+  spatialSpread: number;         // Spread measure: max-min
+
+  // Dynamic metrics
+  angularMomentum: Vector3;      // Total angular momentum
+  energyChangeRate: number;      // dE/dt
+
+  // Hierarchy metrics (for hierarchical systems)
+  hillSpheres?: Array<{body: BodyState; radius: number}>;
+
+  // Component-specific metrics
+  speedStd?: number;             // Standard deviation of orbital speeds
+  componentAnalysis?: any;       // For specific system types
 }
 
 export type PresetName =
@@ -74,7 +112,42 @@ export interface TrajectoryController {
   ) => {
     paramOverrides?: Record<string, any>;
     impulses?: Array<{ bodyId: number; dv: [number, number, number] }>; // optional future use
+    controller?: (state: BodyState[], t: number) => Vector3[]; // Dynamic controller injection
   } | void;
+}
+
+// Stability controller interface for preset-specific stability control
+export interface StabilityController {
+  onBeforeStep: (
+    state: BodyState[],
+    t: number,
+    dt: number
+  ) => {
+    paramOverrides?: Partial<SimulationConfig>;
+    controller?: SimulationConfig['controller'];
+    stabilityMetrics?: Partial<StabilityMetrics>;
+    uiFeedback?: {
+      message?: string;
+      level?: 'info' | 'warning' | 'critical';
+      action?: string;
+    };
+  } | void;
+}
+
+// Parameter override for dynamic adjustments
+export interface ParameterOverride {
+  timeStep?: number;
+  softening?: number;
+  G?: number;
+  energySampleInterval?: number;
+}
+
+// Preset with stability configuration
+export interface PresetWithStability extends Preset {
+  defaultConfig?: Partial<SimulationConfig>;      // Preset-specific default parameters
+  stabilityController?: StabilityController;     // Built-in stability controller
+  enableStabilityControl?: boolean;             // Feature flag
+  stabilityMetrics?: string[];                  // Metrics to track
 }
 
 export type ModeParams = Record<string, any>;
@@ -89,4 +162,6 @@ export interface Mode {
   createInitialBodies: (seed?: number, params?: ModeParams) => BodyState[];
   // Optional controller factory to inject control accelerations
   createController?: (initialBodies: BodyState[], params?: ModeParams) => SimulationConfig['controller'];
+  // Optional stability controller factory (onBeforeStep hook)
+  createStabilityController?: (initialBodies: BodyState[], params?: ModeParams) => StabilityController;
 }

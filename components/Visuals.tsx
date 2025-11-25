@@ -52,7 +52,7 @@ interface BodyVisualProps {
   theme: 'dark' | 'light';
 }
 
-const StarMesh: React.FC<{ radius: number; color: string; name: string; theme: 'dark' | 'light' }> = ({ radius, color, name, theme }) => {
+const StarMesh: React.FC<{ radius: number; color: string; theme: 'dark' | 'light' }> = ({ radius, color, theme }) => {
   const gradientTextureRef = useRef<THREE.Texture | null>(null);
 
   // 创建径向渐变纹理以增强3D效果
